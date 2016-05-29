@@ -1,0 +1,12 @@
+(lp0
+S'poi'
+p1
+aS'salary'
+p2
+aS'exercised_stock_options'
+p3
+aS'deferral_payments'
+p4
+aS'fraction_to_poi'
+p5
+a.
