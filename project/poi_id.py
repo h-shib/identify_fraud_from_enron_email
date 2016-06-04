@@ -6,6 +6,8 @@ sys.path.append("../tools/")
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data, test_classifier
+from sklearn.grid_search import GridSearchCV
+from time import time
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -43,8 +45,6 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn import tree
-clf = tree.DecisionTreeClassifier(min_samples_split=5)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -58,12 +58,35 @@ from sklearn.cross_validation import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
+"""
+Tuned parameter with GridSearchCV below.
+
+param_grid = {"criterion": ["gini", "entropy"],
+              "min_samples_split": [2, 5, 10, 20],
+              "max_depth": [None, 2, 5, 10],
+              "min_samples_leaf": [1, 5, 10],
+              "max_leaf_nodes": [None, 5, 10, 20],
+              }
+
+clf = tree.DecisionTreeClassifier()
+clf = GridSearchCV(clf, param_grid)
 clf.fit(features_train, labels_train)
 print clf.score(features_test, labels_test)
+"""
+
+from sklearn import tree
+clf = tree.DecisionTreeClassifier(criterion='gini', max_depth=None, max_features=None,
+                             max_leaf_nodes=None, min_samples_leaf=1, min_samples_split=5)
+
+clf.fit(features_train, labels_train)
 print clf.feature_importances_
 
-test_classifier(clf, my_dataset, features_list, folds = 5000)
+print "accuracy for training data:", clf.score(features_train, labels_train)
+print "accuracy for testing data:", clf.score(features_test, labels_test)
 
+t0 = time()
+test_classifier(clf, my_dataset, features_list, folds = 1000)
+print "time:", time() - t0
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and
