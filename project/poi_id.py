@@ -61,22 +61,27 @@ features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
 from sklearn import tree, svm, naive_bayes, neighbors
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_classif
+
 
 # DecisionTree
 clf = tree.DecisionTreeClassifier()
-print_result(clf, features_train, labels_train, features_test, labels_test)
+test_classifier(clf, my_dataset, features_list, folds = 1000)
 
 # SVM
 clf = svm.SVC()
-print_result(clf, features_train, labels_train, features_test, labels_test)
+test_classifier(clf, my_dataset, features_list, folds = 1000)
 
 # Naive Bayes
 clf = naive_bayes.GaussianNB()
-print_result(clf, features_train, labels_train, features_test, labels_test)
+
+test_classifier(clf, my_dataset, features_list, folds = 1000)
 
 # K Nearest Neighbors
 clf = neighbors.KNeighborsClassifier(n_neighbors=3)
-print_result(clf, features_train, labels_train, features_test, labels_test)
+
+test_classifier(clf, my_dataset, features_list, folds = 1000)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -106,11 +111,15 @@ print clf.score(features_test, labels_test)
 clf = tree.DecisionTreeClassifier(criterion='gini', max_depth=None, max_features=None,
                              max_leaf_nodes=None, min_samples_leaf=1, min_samples_split=5)
 
-clf.fit(features_train, labels_train)
+k = SelectKBest(f_classif, k=4)
+features_train_new = k.fit_transform(features_train, labels_train)
+features_test_new = SelectKBest(f_classif, k=4).fit_transform(features_test, labels_test)
+print "test:", k.get_support()
+clf.fit(features_train_new, labels_train)
 print clf.feature_importances_
 
-print "accuracy for training data:", clf.score(features_train, labels_train)
-print "accuracy for testing data:", clf.score(features_test, labels_test)
+print "accuracy for training data:", clf.score(features_train_new, labels_train)
+print "accuracy for testing data:", clf.score(features_test_new, labels_test)
 
 t0 = time()
 test_classifier(clf, my_dataset, features_list, folds = 1000)
