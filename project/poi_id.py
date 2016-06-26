@@ -8,7 +8,9 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data, test_classifier
 from sklearn.grid_search import GridSearchCV
 from time import time
-from helper import print_result
+from helper import show_plot
+import numpy as np
+import matplotlib.pyplot as plt
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -20,6 +22,7 @@ features_list = ['poi', 'salary', 'exercised_stock_options', 'deferral_payments'
                  'total_stock_value', 'expenses', 'loan_advances', 'from_messages', 
                  'other', 'from_this_person_to_poi', 'director_fees',
                  'deferred_income', 'long_term_incentive', 'from_poi_to_this_person']
+
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -46,6 +49,9 @@ features_list.append('fraction_to_poi')
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
 
+# Transform features_list to be able to modify easily
+features_list = features_list[1:]
+features_list = np.array(features_list)
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -65,23 +71,54 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 
 
-# DecisionTree
-clf = tree.DecisionTreeClassifier()
-test_classifier(clf, my_dataset, features_list, folds = 1000)
 
-# SVM
-clf = svm.SVC()
-test_classifier(clf, my_dataset, features_list, folds = 1000)
+precision_tree = []
+recall_tree    = []
+precision_svm  = []
+recall_svm     = []
+precision_nb   = []
+recall_nb      = []
+precision_knn  = []
+recall_knn     = []
 
-# Naive Bayes
-clf = naive_bayes.GaussianNB()
+# Apply SelectKBest to each classifier for k=1 to k=20
+for i in range(1, 20):
+    k = SelectKBest(f_classif, k=i)
+    features_new = k.fit_transform(features, labels)
+    selected_features_index = k.get_support()
+    selected_features_list = features_list[selected_features_index]
+    selected_features_list = np.insert(selected_features_list, 0, 'poi')
+    print selected_features_list
 
-test_classifier(clf, my_dataset, features_list, folds = 1000)
+    # DecisionTree
+    clf = tree.DecisionTreeClassifier()
+    pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
+    precision_tree.append(pre)
+    recall_tree.append(rec)
 
-# K Nearest Neighbors
-clf = neighbors.KNeighborsClassifier(n_neighbors=3)
+    # SVM
+    #clf = svm.SVC()
+    #pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
+    #precision_svm.append(pre)
+    #recall_svm.append(rec)
 
-test_classifier(clf, my_dataset, features_list, folds = 1000)
+    # Naive Bayes
+    clf = naive_bayes.GaussianNB()
+    pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
+    precision_nb.append(pre)
+    recall_nb.append(rec)
+
+    # K Nearest Neighbors
+    clf = neighbors.KNeighborsClassifier(n_neighbors=3)
+    pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
+    precision_knn.append(pre)
+    recall_knn.append(rec)
+
+num_of_features = range(1, 20)
+show_plot(num_of_features, precision_tree, recall_tree, 'DecisionTree')
+show_plot(num_of_features, precision_nb, recall_nb, 'Naive Bayes')
+show_plot(num_of_features, precision_knn, recall_knn, 'K Nearest Neighbors')
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -111,9 +148,9 @@ print clf.score(features_test, labels_test)
 clf = tree.DecisionTreeClassifier(criterion='gini', max_depth=None, max_features=None,
                              max_leaf_nodes=None, min_samples_leaf=1, min_samples_split=5)
 
-k = SelectKBest(f_classif, k=4)
+k = SelectKBest(f_classif, k=15)
 features_train_new = k.fit_transform(features_train, labels_train)
-features_test_new = SelectKBest(f_classif, k=4).fit_transform(features_test, labels_test)
+features_test_new = k.fit_transform(features_test, labels_test)
 print "test:", k.get_support()
 clf.fit(features_train_new, labels_train)
 print clf.feature_importances_
