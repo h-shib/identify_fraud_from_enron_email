@@ -116,8 +116,8 @@ for i in range(1, 20):
 
 num_of_features = range(1, 20)
 show_plot(num_of_features, precision_tree, recall_tree, 'DecisionTree')
-show_plot(num_of_features, precision_nb, recall_nb, 'Naive Bayes')
-show_plot(num_of_features, precision_knn, recall_knn, 'K Nearest Neighbors')
+show_plot(num_of_features, precision_nb, recall_nb, 'NaiveBayes')
+show_plot(num_of_features, precision_knn, recall_knn, 'KNearestNeighbors')
 
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
