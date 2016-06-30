@@ -62,7 +62,7 @@ features_list = np.array(features_list)
 # Provided to give you a starting point. Try a variety of classifiers.
 
 # Prepare for validation
-from sklearn.cross_validation import train_test_split, cross_val_score
+from sklearn.cross_validation import train_test_split, StratifiedShuffleSplit
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
@@ -89,6 +89,7 @@ for i in range(1, 20):
     selected_features_list = features_list[selected_features_index]
     selected_features_list = np.insert(selected_features_list, 0, 'poi')
     print selected_features_list
+    print k.scores_
 
     # DecisionTree
     clf = tree.DecisionTreeClassifier()
@@ -128,6 +129,35 @@ show_plot(num_of_features, precision_knn, recall_knn, 'KNearestNeighbors')
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
+
+precision_tree = []
+recall_tree    = []
+
+for i in range(3, 6):
+    k = SelectKBest(f_classif, k=i)
+    features_new = k.fit_transform(features, labels)
+    selected_features_index = k.get_support()
+    selected_features_list = features_list[selected_features_index]
+    selected_features_list = np.insert(selected_features_list, 0, 'poi')
+    print selected_features_list
+
+    # DecisionTree
+    param_grid_dt = {"criterion": ["gini", "entropy"],
+                     "min_samples_split": [2, 5],
+                     "max_depth": [None, 5, 10],
+                     "min_samples_leaf": [1, 5],
+                     "max_leaf_nodes": [None, 10],
+                     }
+
+    clf = tree.DecisionTreeClassifier()
+    clf = GridSearchCV(clf, param_grid=param_grid_dt, scoring='recall')
+    pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
+    precision_tree.append(pre)
+    recall_tree.append(rec)
+
+
+num_of_features = range(3, 6)
+show_plot(num_of_features, precision_tree, recall_tree, 'TunedDecisionTree')
 
 """
 Tuned parameter with GridSearchCV below.
