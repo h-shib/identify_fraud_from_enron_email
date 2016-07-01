@@ -70,8 +70,7 @@ from sklearn import tree, svm, naive_bayes, neighbors
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 
-
-
+# Arrays for graphs to show performance of SelectKBest
 precision_tree = []
 recall_tree    = []
 precision_svm  = []
@@ -81,27 +80,21 @@ recall_nb      = []
 precision_knn  = []
 recall_knn     = []
 
-# Apply SelectKBest to each classifier for k=1 to k=20
+# Apply SelectKBest to each classifier for k=1 to k=19
 for i in range(1, 20):
     k = SelectKBest(f_classif, k=i)
     features_new = k.fit_transform(features, labels)
     selected_features_index = k.get_support()
     selected_features_list = features_list[selected_features_index]
     selected_features_list = np.insert(selected_features_list, 0, 'poi')
-    print selected_features_list
-    print k.scores_
+    print "===================="
+    print "Selected features: ", selected_features_list
 
     # DecisionTree
     clf = tree.DecisionTreeClassifier()
     pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
     precision_tree.append(pre)
     recall_tree.append(rec)
-
-    # SVM
-    #clf = svm.SVC()
-    #pre, rec = test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
-    #precision_svm.append(pre)
-    #recall_svm.append(rec)
 
     # Naive Bayes
     clf = naive_bayes.GaussianNB()
@@ -115,6 +108,7 @@ for i in range(1, 20):
     precision_knn.append(pre)
     recall_knn.append(rec)
 
+# Make graphs
 num_of_features = range(1, 20)
 show_plot(num_of_features, precision_tree, recall_tree, 'DecisionTree')
 show_plot(num_of_features, precision_nb, recall_nb, 'NaiveBayes')
@@ -140,7 +134,8 @@ for i in range(3, 6):
     selected_features_index = k.get_support()
     selected_features_list = features_list[selected_features_index]
     selected_features_list = np.insert(selected_features_list, 0, 'poi')
-    print selected_features_list
+    print "===================="
+    print "Selected features: ", selected_features_list
 
     # DecisionTree
     param_grid_dt = {"criterion": ["gini", "entropy"],
@@ -167,6 +162,9 @@ features_new = k.fit_transform(features, labels)
 selected_features_index = k.get_support()
 selected_features_list = features_list[selected_features_index]
 selected_features_list = np.insert(selected_features_list, 0, 'poi')
+print "features ranking: ", k.scores_
+print "===================="
+print "Selected features: ", selected_features_list
 
 clf = naive_bayes.GaussianNB()
 
