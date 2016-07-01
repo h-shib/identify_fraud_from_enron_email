@@ -130,6 +130,7 @@ show_plot(num_of_features, precision_knn, recall_knn, 'KNearestNeighbors')
 
 # Example starting point. Try investigating other evaluation techniques!
 
+# Parameter tune for Decision Tree
 precision_tree = []
 recall_tree    = []
 
@@ -146,7 +147,7 @@ for i in range(3, 6):
                      "min_samples_split": [2, 5],
                      "max_depth": [None, 5, 10],
                      "min_samples_leaf": [1, 5],
-                     "max_leaf_nodes": [None, 10],
+                     "max_leaf_nodes": [None, 10]
                      }
 
     clf = tree.DecisionTreeClassifier()
@@ -159,37 +160,18 @@ for i in range(3, 6):
 num_of_features = range(3, 6)
 show_plot(num_of_features, precision_tree, recall_tree, 'TunedDecisionTree')
 
-"""
-Tuned parameter with GridSearchCV below.
 
-param_grid = {"criterion": ["gini", "entropy"],
-              "min_samples_split": [2, 5, 10, 20],
-              "max_depth": [None, 2, 5, 10],
-              "min_samples_leaf": [1, 5, 10],
-              "max_leaf_nodes": [None, 5, 10, 20],
-              }
+# Final choice
+k = SelectKBest(f_classif, k=5)
+features_new = k.fit_transform(features, labels)
+selected_features_index = k.get_support()
+selected_features_list = features_list[selected_features_index]
+selected_features_list = np.insert(selected_features_list, 0, 'poi')
 
-clf = tree.DecisionTreeClassifier()
-clf = GridSearchCV(clf, param_grid)
-clf.fit(features_train, labels_train)
-print clf.score(features_test, labels_test)
-"""
-
-clf = tree.DecisionTreeClassifier(criterion='gini', max_depth=None, max_features=None,
-                             max_leaf_nodes=None, min_samples_leaf=1, min_samples_split=5)
-
-k = SelectKBest(f_classif, k=15)
-features_train_new = k.fit_transform(features_train, labels_train)
-features_test_new = k.fit_transform(features_test, labels_test)
-print "test:", k.get_support()
-clf.fit(features_train_new, labels_train)
-print clf.feature_importances_
-
-print "accuracy for training data:", clf.score(features_train_new, labels_train)
-print "accuracy for testing data:", clf.score(features_test_new, labels_test)
+clf = naive_bayes.GaussianNB()
 
 t0 = time()
-test_classifier(clf, my_dataset, features_list, folds = 1000)
+test_classifier(clf, my_dataset, selected_features_list, folds = 1000)
 print "time:", time() - t0
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
